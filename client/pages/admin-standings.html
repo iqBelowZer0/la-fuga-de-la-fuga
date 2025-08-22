@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Admin – Standings</title>
+  <link rel="stylesheet" href="../styles/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    .admin-wrap { max-width: 1280px; margin: 1.5rem auto; }
+    .grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+    .card label { font-weight: 700; display:block; margin:.35rem 0 .25rem; }
+    .row5 { display:grid; grid-template-columns: 60px 1fr 1fr 120px; gap:.5rem; }
+    input { width: 100%; padding: .5rem; border:1px solid var(--border); border-radius: 8px; }
+    .status { margin-top:.5rem; }
+  </style>
+</head>
+<body>
+  <header class="title-banner"><h1>Admin – Standings</h1></header>
+
+  <nav class="main-nav">
+    <ul>
+      <li><a href="../index.html">HOME</a></li>
+      <li><a href="./races.html">RACES</a></li>
+      <li><a href="./admin.html">POST (Preview/Comment)</a></li>
+    </ul>
+  </nav>
+
+  <main class="admin-wrap grid grid-2">
+    <div class="card">
+      <h2>Admin Token</h2>
+      <input id="token" type="password" placeholder="Your ADMIN_TOKEN" />
+    </div>
+
+    <div class="card">
+      <h2>GC – Top 5</h2>
+      <div id="gcRows"></div>
+      <button data-type="gc" class="saveStanding">Save GC</button>
+      <div class="status" id="gcStatus"></div>
+    </div>
+
+    <div class="card">
+      <h2>Polka (KOM) – Top 5</h2>
+      <div id="polkaRows"></div>
+      <button data-type="polka" class="saveStanding">Save Polka</button>
+      <div class="status" id="polkaStatus"></div>
+    </div>
+
+    <div class="card">
+      <h2>Green – Top 5</h2>
+      <div id="greenRows"></div>
+      <button data-type="green" class="saveStanding">Save Green</button>
+      <div class="status" id="greenStatus"></div>
+    </div>
+
+    <div class="card">
+      <h2>White – Top 5</h2>
+      <div id="whiteRows"></div>
+      <button data-type="white" class="saveStanding">Save White</button>
+      <div class="status" id="whiteStatus"></div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="social-icons">
+      <a href="mailto:example@gmail.com">📧</a>
+      <a href="#">𝕏</a>
+      <a href="#">📷</a>
+      <a href="#">▶️</a>
+    </div>
+    <div class="copyright">
+      © 2025 La Fuga De La Fuga — All rights reserved.
+    </div>
+  </footer>
+
+  <script src="../scripts/admin-standings.js"></script>
+</body>
+</html>

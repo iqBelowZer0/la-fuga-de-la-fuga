@@ -1,0 +1,396 @@
+/* ===================================================================
+   La Vuelta Theme — La Fuga De La Fuga (Sporty, Bold)
+   Palette:
+   --primary:   #E10600 (La Vuelta red)
+   --secondary: #111111 (near-black)
+   --bg:        #F7F7F7 (light gray)
+   --text:      #222222
+   Fonts: Barlow (body), Barlow Condensed (headings)
+   Sticky footer layout included
+   =================================================================== */
+
+:root {
+  --primary: #E10600;
+  --secondary: #111111;
+  --bg: #F7F7F7;
+  --text: #222222;
+  --card-bg: #ffffff;
+  --muted: #616161;
+  --border: #e8e8e8;
+
+  --radius: 12px;
+  --pad: 1rem;
+  --shadow: 0 6px 18px rgba(0,0,0,0.07);
+}
+
+/* Reset-ish + sticky footer layout */
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Barlow", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+}
+main { flex: 1 0 auto; display: block; }
+
+/* Headings: sporty condensed */
+h1, h2, h3, h4 {
+  font-family: "Barlow Condensed", "Barlow", system-ui, sans-serif;
+  letter-spacing: 0.3px;
+  margin: 0 0 .5rem;
+}
+
+/* Links */
+a { color: var(--secondary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Title Banner — beefy */
+.title-banner {
+  background: linear-gradient(90deg, var(--secondary) 0%, #000000 100%);
+  color: #fff;
+  padding: 4rem 1rem;                 /* big hero */
+  text-align: center;
+  position: relative;
+}
+.title-banner h1 {
+  font-size: clamp(2.6rem, 5vw, 4rem);
+  margin: 0;
+  text-transform: uppercase;
+}
+.title-banner::after {
+  content: "";
+  width: 180px;
+  height: 10px;
+  background: var(--primary);
+  display: block;
+  margin: 1.25rem auto 0;
+  border-radius: 99px;
+}
+
+/* Main Nav */
+.main-nav {
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.main-nav ul {
+  margin: 0 auto;
+  padding: 1rem 1.25rem;             /* taller nav */
+  list-style: none;
+  max-width: 1280px;
+  display: flex;
+  gap: 1.25rem;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.main-nav a {
+  display: inline-block;
+  font-weight: 600;
+  padding: .7rem 1.1rem;
+  border-radius: 999px;
+  transition: transform .1s ease, background-color .2s ease, color .2s ease;
+}
+.main-nav a:hover {
+  background: rgba(225, 6, 0, 0.14); /* primary red tint */
+  color: var(--secondary);
+  transform: translateY(-1px);
+}
+
+/* Containers */
+.home-wrap,
+.races-container,
+.about-wrap {
+  max-width: 1280px;                 /* wider desktop */
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+/* Cards & Sections */
+.preview-card,
+.section-card,
+.widget,
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+}
+
+/* Accent edge (left) for key sections */
+.preview-card,
+.section-card {
+  border-left: 6px solid var(--primary);
+}
+
+/* Grids */
+.grid { display: grid; gap: 1.75rem; }
+@media (min-width: 900px) {
+  .grid.grid-2 { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 899px) {
+  .grid.grid-2 { grid-template-columns: 1fr; }
+}
+
+/* Home tweaks */
+.preview-card h2 a { color: var(--secondary); }
+
+/* Races layout: left dominates */
+.races-container {
+  display: grid;
+  grid-template-columns: minmax(0, 2.4fr) minmax(320px, 400px);
+  gap: 2rem;
+}
+@media (max-width: 960px) {
+  .races-container { grid-template-columns: 1fr; }
+  .right-col { order: -1; }
+}
+.left-col section { margin-bottom: 1rem; }
+
+/* Right column widgets */
+.widget h4 {
+  margin: 0 0 .6rem;
+  font-size: 1.2rem;
+  color: var(--secondary);
+}
+.widget table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.widget th, .widget td {
+  padding: .65rem .75rem;
+  border-bottom: 1px solid var(--border);
+  font-size: .95rem;
+}
+.widget tr:last-child td { border-bottom: none; }
+.muted { color: var(--muted); }
+
+/* Archive items */
+.archive-item { border-bottom: 1px solid var(--border); padding: .85rem 0; }
+.archive-item:last-child { border-bottom: none; }
+.badge {
+  display: inline-block;
+  padding: .3rem .7rem;
+  border-radius: 999px;
+  background: var(--secondary);
+  color: #fff;
+  font-weight: 700;
+  font-size: .9rem;
+  margin-left: .5rem;
+}
+
+/* Text blocks for PREVIEW/COMMENT */
+.preview, .comment, .text-block {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.7;
+  margin-top: .6rem;
+}
+.preview h4, .comment h4 {
+  display: block;
+  margin: 0 0 .4rem;
+}
+
+/* Footer — beefy and sticky */
+.site-footer {
+  margin-top: 2rem;
+  background: var(--secondary);
+  color: #e9eef7;
+  text-align: center;
+  padding: 2.5rem 1.25rem;
+  flex-shrink: 0;
+}
+.site-footer a { color: var(--primary); }
+.site-footer .social-icons {
+  margin-top: .5rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  font-size: 1.35rem;
+}
+.site-footer .copyright {
+  margin-top: 1rem;
+  font-size: 1rem;
+  color: #d8dfea;
+}
+
+/* Buttons */
+button, .btn {
+  background: var(--secondary);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: .7rem 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+button:hover, .btn:hover { opacity: .92; }
+
+/* Small polish */
+.main-nav a:hover { background: rgba(225,6,0,.16); }
+
+
+/* === La Vuelta Banner + Footer Overrides ======================= */
+
+/* Title Banner */
+.title-banner {
+  background: linear-gradient(135deg, #E10600 0%, #B00000 100%);
+  color: #fff;
+  padding: 4rem 1rem;
+  text-align: center;
+  position: relative;
+}
+.title-banner h1 {
+  font-size: clamp(2.6rem, 5vw, 4rem);
+  margin: 0;
+  text-transform: uppercase;
+}
+.title-banner::after {
+  content: "";
+  width: 180px;
+  height: 10px;
+  background: #fff;              /* white accent bar */
+  display: block;
+  margin: 1.25rem auto 0;
+  border-radius: 99px;
+}
+
+/* Footer */
+.site-footer {
+  margin-top: 2rem;
+  background: linear-gradient(135deg, #B00000 0%, #E10600 100%);
+  color: #fff;
+  text-align: center;
+  padding: 2.5rem 1.25rem;
+  flex-shrink: 0;
+}
+.site-footer a { color: #fff; text-decoration: underline; }
+.site-footer a:hover { opacity: 0.85; }
+.site-footer .social-icons {
+  margin-top: .5rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  font-size: 1.35rem;
+}
+.site-footer .copyright {
+  margin-top: 1rem;
+  font-size: 1rem;
+  color: #f0f0f0;
+}
+
+
+
+/* === La Vuelta Red Stripe on Cards & Standings ================= */
+
+/* Generic section cards (today/next/archive) */
+.section-card {
+  border-left: 6px solid #E10600;  /* bold red stripe */
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  padding: 1.5rem;
+}
+
+/* Preview cards on Home */
+.preview-card {
+  border-left: 6px solid #E10600;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  padding: 1.5rem;
+}
+
+/* Right column standings widgets */
+.widget {
+  border-left: 6px solid #E10600;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  padding: 1.25rem;
+}
+
+
+/* === Home Page Card Width Fix =================================== */
+
+/* Force grid to 1 column on larger screens for wider cards */
+.home-wrap .grid {
+  grid-template-columns: 1fr;   /* always 1 column */
+  justify-items: center;        /* center the cards */
+}
+
+/* Limit max card width so they look balanced */
+.home-wrap .preview-card {
+  width: 100%;
+  max-width: 950px;             /* adjust as you prefer (900–1100px works well) */
+}
+
+
+
+/* === Home: single ultra-wide centered column ======================= */
+
+/* Let the outer container breathe more on big screens */
+.home-wrap { max-width: 1600px; }
+
+/* Force 1-column layout and center the cards */
+.home-wrap .grid,
+.home-wrap .grid.grid-1 {
+  display: grid;
+  grid-template-columns: 1fr;            /* single column */
+  justify-items: center;                 /* center each card */
+  gap: 1.75rem;
+}
+
+/* Make each card span wide but not ridiculous */
+.home-wrap .preview-card {
+  width: 100%;
+  max-width: 1200px;                     /* adjust 1100–1400 if you want wider/narrower */
+  padding: 1.75rem 1.75rem;              /* chunkier padding so it feels fuller */
+  border-left-width: 8px;                /* stronger red stripe on wide cards */
+  border-radius: 16px;
+  box-shadow: 0 14px 32px rgba(0,0,0,0.10);
+}
+
+/* On very small screens keep it comfy */
+@media (max-width: 640px) {
+  .home-wrap .preview-card { padding: 1.25rem; border-left-width: 6px; }
+}
+
+
+/* === Home Page Wide Cards =================================== */
+
+/* 2-column layout on desktop */
+.home-wrap .grid.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);  /* 2 equal columns */
+  gap: 2rem;
+}
+
+/* Make cards fill the space, nice and wide */
+.home-wrap .preview-card {
+  width: 100%;
+  min-height: 220px;               /* taller for balance */
+  padding: 2.25rem;
+  border-left-width: 8px;          /* bold red stripe */
+  font-size: 1.1rem;
+}
+
+.home-wrap {
+  max-width: 1600px;   /* was 1280px */
+}
+
+/* On small screens → 1 column */
+@media (max-width: 900px) {
+  .home-wrap .grid.grid-2 {
+    grid-template-columns: (2, 1fr);
+    gap: 2.5rem;
+  }
+}

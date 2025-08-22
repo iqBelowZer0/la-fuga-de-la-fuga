@@ -1,0 +1,19 @@
+{
+  "name": "la-fuga-de-la-fuga",
+  "version": "1.0.0",
+  "description": "Cycling analysis/blog website with races and articles",
+  "type": "module",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node server/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.1.0",
+    "express": "^5.1.0",
+    "mongoose": "^8.16.2"
+  }
+}

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Admin – Races</title>
+  <link rel="stylesheet" href="../styles/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    .admin-wrap { max-width: 900px; margin: 1.5rem auto; padding: 0; }
+    form .row { display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    form .row + .row { margin-top: .75rem; }
+    label { font-weight: bold; }
+    input, textarea { width: 100%; padding: .6rem; border: 1px solid var(--border); border-radius: 8px; }
+    textarea { min-height: 120px; }
+    .note { color: var(--muted); font-size:.95rem; margin:.5rem 0 0; }
+    .status { margin-top: .75rem; }
+    .admin-card { padding: 1.5rem; }
+  </style>
+</head>
+<body>
+  <header class="title-banner">
+    <h1>Races – Admin</h1>
+  </header>
+
+  <nav class="main-nav">
+    <ul>
+      <li><a href="../index.html">HOME</a></li>
+      <li><a href="./races.html">RACES</a></li>
+      <li><a href="./admin-standings.html">STANDINGS</a></li>
+    </ul>
+  </nav>
+
+  <main class="admin-wrap">
+    <section class="section-card admin-card">
+      <p class="note">
+        Fill today’s post (defaults to today in CET), or set a specific date as <code>YYYY-MM-DD</code>.
+        Use the <strong>Load</strong> button to fetch existing content for that date and edit it.
+      </p>
+
+      <form id="post-form">
+        <div class="row">
+          <div>
+            <label for="adminToken">Admin Token</label>
+            <input id="adminToken" type="password" placeholder="Your ADMIN_TOKEN" required />
+          </div>
+          <div>
+            <label for="date">Date (YYYY-MM-DD, optional)</label>
+            <div style="display:grid; grid-template-columns: 1fr auto; gap:.5rem;">
+              <input id="date" type="text" placeholder="Leave empty for today" />
+              <button type="button" id="loadBtn" title="Load existing post for date">Load</button>
+            </div>
+            <div class="note">Tip: Click “Load” to fetch and edit what’s already saved for that day.</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="stageNumber">Stage Number</label>
+            <input id="stageNumber" type="number" required />
+          </div>
+          <div>
+            <label for="distanceKm">Distance (km)</label>
+            <input id="distanceKm" type="number" step="0.1" required />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="start">Start</label>
+            <input id="start" type="text" required />
+          </div>
+          <div>
+            <label for="finish">Finish</label>
+            <input id="finish" type="text" required />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="altitudeDiff">Altitude Diff (m)</label>
+            <input id="altitudeDiff" type="number" required />
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <div class="note">“Next” should show a <strong>PREVIEW</strong> line even if empty. Use the word “PREVIEW” if needed.</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="preview">Preview</label>
+            <textarea id="preview" placeholder="PREVIEW (required)"></textarea>
+          </div>
+          <div>
+            <label for="comment">Comment (posted after stage)</label>
+            <textarea id="comment" placeholder="COMMENT (optional)"></textarea>
+          </div>
+        </div>
+
+        <button type="submit">Save Post</button>
+        <div class="status" id="status"></div>
+      </form>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="social-icons">
+      <a href="mailto:example@gmail.com">📧</a>
+      <a href="#">𝕏</a>
+      <a href="#">📷</a>
+      <a href="#">▶️</a>
+    </div>
+    <div class="copyright">
+      © 2025 La Fuga De La Fuga — All rights reserved.
+    </div>
+  </footer>
+
+  <!-- Inline admin logic (unchanged functionality) -->
+  <script>
+    (function () {
+      var API_BASE = "http://localhost:5000/api/races";
+      function $(id) { return document.getElementById(id); }
+      function setStatus(msg, ok) {
+        if (ok === void 0) ok = true;
+        var s = $("status"); if (!s) return;
+        s.textContent = msg || "";
+        s.style.color = ok ? "green" : "crimson";
+      }
+      function getToken() { return ($("adminToken").value || "").trim(); }
+      function getDateOrEmpty() { return ($("date").value || "").trim(); }
+      function fillFormFromPost(p) {
+        if (!p) {
+          $("stageNumber").value = "";
+          $("start").value = "";
+          $("finish").value = "";
+          $("distanceKm").value = "";
+          $("altitudeDiff").value = "";
+          $("preview").value = "";
+          $("comment").value = "";
+          return;
+        }
+        $("stageNumber").value = (p.stageNumber != null ? p.stageNumber : "");
+        $("start").value = (p.start || "");
+        $("finish").value = (p.finish || "");
+        $("distanceKm").value = (p.distanceKm != null ? p.distanceKm : "");
+        $("altitudeDiff").value = (p.altitudeDiff != null ? p.altitudeDiff : "");
+        $("preview").value = (p.preview || "");
+        $("comment").value = (p.comment || "");
+      }
+      function fetchJSON(url, opts, cb) {
+        if (!opts) opts = {};
+        fetch(url, opts).then(function (res) {
+          return res.text().then(function (text) {
+            var data;
+            try { data = text ? JSON.parse(text) : {}; } catch (e) { data = { error: text }; }
+            cb(null, { ok: res.ok, status: res.status, data: data });
+          });
+        }).catch(function (err) { cb(err); });
+      }
+      function loadPostForDate() {
+        var token = getToken();
+        if (!token) { setStatus("Admin token required for load", false); return; }
+        var date = getDateOrEmpty();
+        setStatus("Loading…");
+        var url = API_BASE + "/post";
+        if (date) url += "?date=" + encodeURIComponent(date);
+        fetchJSON(url, { headers: { "x-admin-token": token } }, function (err, result) {
+          if (err) { console.error(err); setStatus("Network error while loading", false); return; }
+          if (!result.ok) { setStatus(result.status + " " + (result.data && result.data.error ? result.data.error : "Failed to load"), false); return; }
+          fillFormFromPost(result.data.post);
+          if (!date && result.data && result.data.date) $("date").value = result.data.date;
+          setStatus(result.data.post ? "Loaded existing post ✅" : "No post yet for that date — start a new one.");
+        });
+      }
+      function savePost(e) {
+        if (e && e.preventDefault) e.preventDefault();
+        var token = getToken();
+        if (!token) { setStatus("Admin token required", false); return; }
+        var body = {
+          date: getDateOrEmpty() || undefined,
+          stageNumber: Number($("stageNumber").value),
+          start: ($("start").value || "").trim(),
+          finish: ($("finish").value || "").trim(),
+          distanceKm: Number($("distanceKm").value),
+          altitudeDiff: Number($("altitudeDiff").value),
+          preview: ($("preview").value || "").trim(),
+          comment: ($("comment").value || "").trim()
+        };
+        if (!body.stageNumber || !body.start || !body.finish || isNaN(body.distanceKm) || isNaN(body.altitudeDiff) || !body.preview) {
+          setStatus("Please fill Stage Number, Start, Finish, Distance, Alt Diff, and Preview.", false);
+          return;
+        }
+        setStatus("Saving…");
+        fetchJSON(API_BASE + "/post", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-admin-token": token },
+          body: JSON.stringify(body)
+        }, function (err, result) {
+          if (err) { console.error(err); setStatus("Network error while saving", false); return; }
+          if (!result.ok) { setStatus(result.status + " " + (result.data && result.data.error ? result.data.error : "Failed to save"), false); return; }
+          setStatus("Saved ✅");
+        });
+      }
+      document.addEventListener("DOMContentLoaded", function () {
+        var form = $("post-form");
+        var loadBtn = $("loadBtn");
+        if (form) form.addEventListener("submit", savePost);
+        if (loadBtn) loadBtn.addEventListener("click", loadPostForDate);
+      });
+    })();
+  </script>
+</body>
+</html>
