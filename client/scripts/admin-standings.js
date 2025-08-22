@@ -1,93 +1,132 @@
 // client/scripts/admin-standings.js
-// Updates standings for GC, Polka (KOM), Green, White via protected endpoints.
-// Requires ADMIN_TOKEN (set in server/.env) entered in the page form.
+// Replace the API base with your live backend URL
+const API = "https://la-fuga-de-la-fuga-backend.onrender.com/api/races";
 
-const API = "http://localhost:5000/api/races";
-const $ = (id) => document.getElementById(id);
-const statusMsg = (id, msg, ok = true) => {
-  const el = $(id);
-  if (!el) return;
-  el.textContent = msg || "";
-  el.style.color = ok ? "green" : "crimson";
-};
+// ---------- helpers ----------
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
-// Build 5-row input blocks for a standings table
-function rowTemplate(prefix, idx) {
+function rowTemplate(prefix, i, data = {}) {
+  const rank = data.rank ?? i + 1;
+  const rider = data.rider ?? "";
+  const team = data.team ?? "";
+  const gap = data.gap ?? data.value ?? ""; // supports either "gap" or "value"
   return `
-    <div class="row5" data-idx="${idx}">
-      <input id="${prefix}_rank_${idx}" type="number" placeholder="#" />
-      <input id="${prefix}_rider_${idx}" type="text" placeholder="Rider" />
-      <input id="${prefix}_team_${idx}" type="text" placeholder="Team" />
-      <input id="${prefix}_val_${idx}" type="text" placeholder="Gap / Points / Time" />
+    <div class="row5" data-row="${i}">
+      <input type="number" min="1" value="${rank}" aria-label="rank" class="${prefix}-rank" />
+      <input type="text" value="${rider}" placeholder="Rider" class="${prefix}-rider" />
+      <input type="text" value="${team}" placeholder="Team" class="${prefix}-team" />
+      <input type="text" value="${gap}" placeholder="Gap / Points / Time" class="${prefix}-gap" />
     </div>
   `;
 }
 
-function buildRows(containerId, prefix) {
-  const host = $(containerId);
-  if (!host) return;
-  host.innerHTML = "";
-  for (let i = 1; i <= 5; i++) {
-    host.insertAdjacentHTML("beforeend", rowTemplate(prefix, i));
-  }
-}
-
-function readRows(prefix) {
+function buildFive(prefix, containerSel, dataArr = []) {
+  const container = $(containerSel);
   const rows = [];
-  for (let i = 1; i <= 5; i++) {
-    const rank = Number($(`${prefix}_rank_${i}`).value || i);
-    const rider = ($(`${prefix}_rider_${i}`).value || "").trim();
-    const team = ($(`${prefix}_team_${i}`).value || "").trim();
-    const val = ($(`${prefix}_val_${i}`).value || "").trim();
-    if (!rider) continue; // skip empty rows
-    // server accepts { rank, rider, team, value, gap }; we mirror val into both for convenience
-    rows.push({ rank, rider, team, value: val, gap: val });
+  for (let i = 0; i < 5; i++) {
+    rows.push(rowTemplate(prefix, i, dataArr[i]));
   }
-  return rows;
+  container.innerHTML = rows.join("");
 }
 
-function init() {
-  // Build editable rows for each standings block
-  buildRows("gcRows", "gc");
-  buildRows("polkaRows", "polka");
-  buildRows("greenRows", "green");
-  buildRows("whiteRows", "white");
-
-  // Hook up Save buttons for each standings type
-  document.querySelectorAll(".saveStanding").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      const token = ($("token").value || "").trim();
-      const statusId = btn.nextElementSibling?.id || "gcStatus";
-      if (!token) return statusMsg(statusId, "Token required", false);
-
-      const type = btn.getAttribute("data-type"); // "gc" | "polka" | "green" | "white"
-      if (!["gc", "polka", "green", "white"].includes(type)) {
-        return statusMsg(statusId, "Invalid type", false);
-      }
-
-      const rows = readRows(type).slice(0, 5);
-      if (!rows.length) return statusMsg(statusId, "Enter at least 1 row", false);
-
-      try {
-        const res = await fetch(`${API}/standings/${type}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-admin-token": token,
-          },
-          body: JSON.stringify({ rowsTop5: rows }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          return statusMsg(statusId, data?.error || `Failed (${res.status})`, false);
-        }
-        statusMsg(statusId, "Saved ✅");
-      } catch (e) {
-        console.error(e);
-        statusMsg(statusId, "Network error", false);
-      }
-    });
+function collectFive(prefix, containerSel) {
+  const container = $(containerSel);
+  const rows = Array.from(container.querySelectorAll(".row5"));
+  return rows.map((row) => {
+    const rank = Number(row.querySelector(`.${prefix}-rank`).value || 0);
+    const rider = row.querySelector(`.${prefix}-rider`).value.trim();
+    const team = row.querySelector(`.${prefix}-team`).value.trim();
+    const gap = row.querySelector(`.${prefix}-gap`).value.trim();
+    return { rank, rider, team, value: gap, gap }; // keep both keys for compatibility
   });
 }
 
-document.addEventListener("DOMContentLoaded", init);
+function setStatus(id, msg, ok = true) {
+  const el = $(id);
+  if (el) {
+    el.textContent = msg;
+    el.style.color = ok ? "green" : "crimson";
+  }
+}
+
+async function apiGet(path, token) {
+  const res = await fetch(`${API}${path}`, {
+    headers: token ? { "x-admin-token": token } : {}
+  });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  return res.json();
+}
+
+async function apiPost(path, token, body) {
+  const res = await fetch(`${API}${path}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { "x-admin-token": token } : {})
+    },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`${res.status} ${text || res.statusText}`);
+  }
+  return res.json();
+}
+
+// ---------- load existing standings on page load ----------
+async function loadAll() {
+  try {
+    const data = await apiGet("/summary"); // summary includes standings buckets
+    const s = (data && data.rightColumn && data.rightColumn.standings) || {};
+
+    buildFive("gc", "#gcRows", s.gc || []);
+    buildFive("polka", "#polkaRows", s.polka || []);
+    buildFive("green", "#greenRows", s.green || []);
+    buildFive("white", "#whiteRows", s.white || []);
+  } catch (e) {
+    console.error(e);
+    setStatus("#gcStatus", "Failed to load current standings.", false);
+  }
+}
+
+// ---------- save handlers ----------
+async function saveType(type, rowsSel, statusSel) {
+  const token = $("#token").value.trim();
+  if (!token) {
+    setStatus(statusSel, "Admin token required.", false);
+    return;
+  }
+  try {
+    setStatus(statusSel, "Saving…", true);
+    const rows =
+      type === "gc"
+        ? collectFive("gc", rowsSel)
+        : type === "polka"
+        ? collectFive("polka", rowsSel)
+        : type === "green"
+        ? collectFive("green", rowsSel)
+        : collectFive("white", rowsSel);
+
+    await apiPost(`/standings/${type}`, token, { rows });
+    setStatus(statusSel, "Saved ✅", true);
+  } catch (e) {
+    console.error(e);
+    setStatus(statusSel, `Error: ${e.message}`, false);
+  }
+}
+
+// ---------- wire up ----------
+document.addEventListener("DOMContentLoaded", () => {
+  loadAll();
+
+  $$(".saveStanding").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const type = btn.getAttribute("data-type");
+      if (type === "gc") return saveType("gc", "#gcRows", "#gcStatus");
+      if (type === "polka") return saveType("polka", "#polkaRows", "#polkaStatus");
+      if (type === "green") return saveType("green", "#greenRows", "#greenStatus");
+      if (type === "white") return saveType("white", "#whiteRows", "#whiteStatus");
+    });
+  });
+});

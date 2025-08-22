@@ -1,5 +1,5 @@
 // client/scripts/home.js
-const API = "http://localhost:5000/api/races/summary";
+const API = "https://la-fuga-de-la-fuga-backend.onrender.com/api/races/summary";
 
 function htmlEscape(s){
   return (s||"").replace(/[&<>"']/g, c => (

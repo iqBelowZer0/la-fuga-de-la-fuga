@@ -12,7 +12,7 @@
     .admin-wrap { max-width: 900px; margin: 1.5rem auto; padding: 0; }
     form .row { display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     form .row + .row { margin-top: .75rem; }
-    label { font-weight: bold; }
+    label { font-weight: 700; }
     input, textarea { width: 100%; padding: .6rem; border: 1px solid var(--border); border-radius: 8px; }
     textarea { min-height: 120px; }
     .note { color: var(--muted); font-size:.95rem; margin:.5rem 0 0; }
@@ -21,6 +21,7 @@
   </style>
 </head>
 <body>
+  <!-- La Vuelta red gradient banner (from styles.css overrides) -->
   <header class="title-banner">
     <h1>Races – Admin</h1>
   </header>
@@ -37,7 +38,7 @@
     <section class="section-card admin-card">
       <p class="note">
         Fill today’s post (defaults to today in CET), or set a specific date as <code>YYYY-MM-DD</code>.
-        Use the <strong>Load</strong> button to fetch existing content for that date and edit it.
+        Click <strong>Load</strong> to fetch existing content for that date and edit it.
       </p>
 
       <form id="post-form">
@@ -52,7 +53,7 @@
               <input id="date" type="text" placeholder="Leave empty for today" />
               <button type="button" id="loadBtn" title="Load existing post for date">Load</button>
             </div>
-            <div class="note">Tip: Click “Load” to fetch and edit what’s already saved for that day.</div>
+            <div class="note">Tip: Use “Load” to edit what’s already saved.</div>
           </div>
         </div>
 
@@ -106,6 +107,7 @@
     </section>
   </main>
 
+  <!-- La Vuelta red gradient footer (from styles.css overrides) -->
   <footer class="site-footer">
     <div class="social-icons">
       <a href="mailto:example@gmail.com">📧</a>
@@ -118,99 +120,7 @@
     </div>
   </footer>
 
-  <!-- Inline admin logic (unchanged functionality) -->
-  <script>
-    (function () {
-      var API_BASE = "http://localhost:5000/api/races";
-      function $(id) { return document.getElementById(id); }
-      function setStatus(msg, ok) {
-        if (ok === void 0) ok = true;
-        var s = $("status"); if (!s) return;
-        s.textContent = msg || "";
-        s.style.color = ok ? "green" : "crimson";
-      }
-      function getToken() { return ($("adminToken").value || "").trim(); }
-      function getDateOrEmpty() { return ($("date").value || "").trim(); }
-      function fillFormFromPost(p) {
-        if (!p) {
-          $("stageNumber").value = "";
-          $("start").value = "";
-          $("finish").value = "";
-          $("distanceKm").value = "";
-          $("altitudeDiff").value = "";
-          $("preview").value = "";
-          $("comment").value = "";
-          return;
-        }
-        $("stageNumber").value = (p.stageNumber != null ? p.stageNumber : "");
-        $("start").value = (p.start || "");
-        $("finish").value = (p.finish || "");
-        $("distanceKm").value = (p.distanceKm != null ? p.distanceKm : "");
-        $("altitudeDiff").value = (p.altitudeDiff != null ? p.altitudeDiff : "");
-        $("preview").value = (p.preview || "");
-        $("comment").value = (p.comment || "");
-      }
-      function fetchJSON(url, opts, cb) {
-        if (!opts) opts = {};
-        fetch(url, opts).then(function (res) {
-          return res.text().then(function (text) {
-            var data;
-            try { data = text ? JSON.parse(text) : {}; } catch (e) { data = { error: text }; }
-            cb(null, { ok: res.ok, status: res.status, data: data });
-          });
-        }).catch(function (err) { cb(err); });
-      }
-      function loadPostForDate() {
-        var token = getToken();
-        if (!token) { setStatus("Admin token required for load", false); return; }
-        var date = getDateOrEmpty();
-        setStatus("Loading…");
-        var url = API_BASE + "/post";
-        if (date) url += "?date=" + encodeURIComponent(date);
-        fetchJSON(url, { headers: { "x-admin-token": token } }, function (err, result) {
-          if (err) { console.error(err); setStatus("Network error while loading", false); return; }
-          if (!result.ok) { setStatus(result.status + " " + (result.data && result.data.error ? result.data.error : "Failed to load"), false); return; }
-          fillFormFromPost(result.data.post);
-          if (!date && result.data && result.data.date) $("date").value = result.data.date;
-          setStatus(result.data.post ? "Loaded existing post ✅" : "No post yet for that date — start a new one.");
-        });
-      }
-      function savePost(e) {
-        if (e && e.preventDefault) e.preventDefault();
-        var token = getToken();
-        if (!token) { setStatus("Admin token required", false); return; }
-        var body = {
-          date: getDateOrEmpty() || undefined,
-          stageNumber: Number($("stageNumber").value),
-          start: ($("start").value || "").trim(),
-          finish: ($("finish").value || "").trim(),
-          distanceKm: Number($("distanceKm").value),
-          altitudeDiff: Number($("altitudeDiff").value),
-          preview: ($("preview").value || "").trim(),
-          comment: ($("comment").value || "").trim()
-        };
-        if (!body.stageNumber || !body.start || !body.finish || isNaN(body.distanceKm) || isNaN(body.altitudeDiff) || !body.preview) {
-          setStatus("Please fill Stage Number, Start, Finish, Distance, Alt Diff, and Preview.", false);
-          return;
-        }
-        setStatus("Saving…");
-        fetchJSON(API_BASE + "/post", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "x-admin-token": token },
-          body: JSON.stringify(body)
-        }, function (err, result) {
-          if (err) { console.error(err); setStatus("Network error while saving", false); return; }
-          if (!result.ok) { setStatus(result.status + " " + (result.data && result.data.error ? result.data.error : "Failed to save"), false); return; }
-          setStatus("Saved ✅");
-        });
-      }
-      document.addEventListener("DOMContentLoaded", function () {
-        var form = $("post-form");
-        var loadBtn = $("loadBtn");
-        if (form) form.addEventListener("submit", savePost);
-        if (loadBtn) loadBtn.addEventListener("click", loadPostForDate);
-      });
-    })();
-  </script>
+  <!-- External admin logic -->
+  <script src="../scripts/admin.js"></script>
 </body>
 </html>

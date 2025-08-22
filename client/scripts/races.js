@@ -1,5 +1,5 @@
 // client/scripts/races.js
-const API_BASE = "http://localhost:5000/api/races";
+const API_BASE = "https://la-fuga-de-la-fuga-backend.onrender.com/api/races";
 
 function el(id) { return document.getElementById(id); }
 function setText(id, v) { const n = el(id); if (n) n.textContent = v ?? ""; }
